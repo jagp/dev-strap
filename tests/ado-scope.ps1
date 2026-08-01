@@ -57,8 +57,28 @@ Check 'ADO_SCOPE=off beats ADO_FILE' ($null -eq (Resolve-AdoTarget))
 Remove-Item Env:\ADO_SCOPE
 Remove-Item Env:\ADO_FILE
 
+# 9) 'ado-path:' config points the board anywhere (parity with omnilog 'path:')
+$ap = Join-Path $env:TEMP ("ado-path-{0}.ado" -f ([guid]::NewGuid().ToString('N')))
+Set-Content -LiteralPath $cfg -Value "---`nado-path: $ap`n---" -Encoding ASCII
+Check 'ado-path => that path' ((Resolve-AdoTarget) -eq $ap)
+
+# 10) 'ado: off' still beats an explicit 'ado-path:'
+Set-Content -LiteralPath $cfg -Value "---`nado: off`nado-path: $ap`n---" -Encoding ASCII
+Check 'ado:off beats ado-path' ($null -eq (Resolve-AdoTarget))
+
 Remove-Item Env:\CLAUDE_PROJECT_DIR -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath $proj -Recurse -Force -ErrorAction SilentlyContinue
+
+# 11) no CLAUDE_PROJECT_DIR -> fallback board is the runtime working dir, NOT the plugin dir
+$cwd = Join-Path $env:TEMP ("ado-cwd-{0}" -f ([guid]::NewGuid().ToString('N')))
+New-Item -ItemType Directory -Path $cwd -Force | Out-Null
+Push-Location $cwd
+$rFallback = Resolve-AdoTarget
+$here = (Get-Location).Path
+Pop-Location
+Check 'no-project-dir => cwd board' ($rFallback -eq (Join-Path $here '.claude\task.ado'))
+Check 'no-project-dir !=> plugin dir' ($rFallback -ne (Join-Path (Split-Path (Split-Path $hooks -Parent) -Parent) '.claude\task.ado'))
+Remove-Item -LiteralPath $cwd -Recurse -Force -ErrorAction SilentlyContinue
 
 if ($fail -eq 0) { Write-Output 'PASS  ado-scope'; exit 0 }
 Write-Output ("FAIL  ado-scope ({0} case(s))" -f $fail); exit 1
