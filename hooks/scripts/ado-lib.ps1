@@ -16,12 +16,23 @@
 $script:AdoTitle = '# ado -- live task board (git-ignored working state)'
 
 function Resolve-AdoTarget {
-  # The board path, or $null meaning "do not mirror".
-  # $env:ADO_FILE overrides all (tests + power users). A future Phase-1 change folds
-  # this onto omnilog's shared scope resolver; for now a minimal per-project default.
+  # The board path, or $null meaning "do not mirror". Folded onto omnilog's shared
+  # scope config (.claude/omnilog.local.md) with an independent 'ado:' switch.
+  # Fail-closed: an installed plugin never writes task.ado where nobody opted in.
   if ($env:ADO_SCOPE -eq 'off') { return $null }
   if ($env:ADO_FILE) { return $env:ADO_FILE }
-  if ($env:CLAUDE_PROJECT_DIR) { return (Join-Path $env:CLAUDE_PROJECT_DIR '.claude\task.ado') }
+  $cfg = Get-OmnilogConfig
+  if ($cfg.ado -eq 'off' -or $cfg.scope -eq 'off') { return $null }
+  if ($env:CLAUDE_PROJECT_DIR) {
+    $board = Join-Path $env:CLAUDE_PROJECT_DIR '.claude\task.ado'
+    if ($cfg.ado -eq 'on') { return $board }                     # explicit opt-in
+    # Otherwise ride omnilog's per-project opt-in marker. Global omnilog scope
+    # deliberately does NOT imply a board in every repo.
+    $marker = Join-Path $env:CLAUDE_PROJECT_DIR 'omnilog.md'
+    if ($cfg.scope -ne 'global' -and (Test-Path -LiteralPath $marker)) { return $board }
+    return $null
+  }
+  # Dev fallback (no CLAUDE_PROJECT_DIR): repo root two levels up from this lib.
   return (Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) '.claude\task.ado')
 }
 
