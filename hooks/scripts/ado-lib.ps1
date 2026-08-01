@@ -23,6 +23,7 @@ function Resolve-AdoTarget {
   if ($env:ADO_FILE) { return $env:ADO_FILE }
   $cfg = Get-OmnilogConfig
   if ($cfg.ado -eq 'off' -or $cfg.scope -eq 'off') { return $null }
+  if ($cfg.adoPath) { return $cfg.adoPath }   # explicit board location (parity with omnilog 'path:')
   if ($env:CLAUDE_PROJECT_DIR) {
     $board = Join-Path $env:CLAUDE_PROJECT_DIR '.claude\task.ado'
     if ($cfg.ado -eq 'on') { return $board }                     # explicit opt-in
@@ -32,8 +33,9 @@ function Resolve-AdoTarget {
     if ($cfg.scope -ne 'global' -and (Test-Path -LiteralPath $marker)) { return $board }
     return $null
   }
-  # Dev fallback (no CLAUDE_PROJECT_DIR): repo root two levels up from this lib.
-  return (Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) '.claude\task.ado')
+  # Fallback (no CLAUDE_PROJECT_DIR): the runtime working directory, never the
+  # plugin's own dir -- keeps an installed plugin's board in the calling project.
+  return (Join-Path (Get-Location).Path '.claude\task.ado')
 }
 
 function Get-AdoMark([string]$status) {
