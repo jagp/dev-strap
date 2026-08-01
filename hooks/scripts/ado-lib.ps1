@@ -20,7 +20,9 @@ function Resolve-AdoTarget {
   # scope config (.claude/omnilog.local.md) with an independent 'ado:' switch.
   # Fail-closed: an installed plugin never writes task.ado where nobody opted in.
   if ($env:ADO_SCOPE -eq 'off') { return $null }
-  if ($env:ADO_FILE) { return $env:ADO_FILE }
+  # Trimmed like OMNILOG_FILE: whitespace-only values from other tools are "unset".
+  $ov = [string]$env:ADO_FILE
+  if ($ov -and $ov.Trim()) { return $ov.Trim() }
   $cfg = Get-OmnilogConfig
   if ($cfg.ado -eq 'off' -or $cfg.scope -eq 'off') { return $null }
   if ($cfg.adoPath) { return $cfg.adoPath }   # explicit board location (parity with omnilog 'path:')
