@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pines-document-meta",
+  "title": "Pines Archive Document Metadata",
+  "description": "Per-document meta.json stored beside page images and transcript.md. Draft — expected to evolve during Phase 2.",
+  "type": "object",
+  "required": ["doc_id", "doc_type", "physical_location", "pages"],
+  "properties": {
+    "doc_id": {
+      "type": "string",
+      "pattern": "^PINES_B\\d{2}_F\\d{2}_D\\d{3}$",
+      "description": "Matches the capture-log and image filenames, e.g. PINES_B01_F03_D012"
+    },
+    "title": { "type": "string" },
+    "doc_type": {
+      "type": "string",
+      "enum": [
+        "diary", "journal", "letter", "legal", "deed", "will",
+        "financial", "ledger", "corporate", "schematic", "map",
+        "photograph", "newspaper", "ephemera", "other"
+      ]
+    },
+    "date": {
+      "type": "object",
+      "description": "Best-known date or range; ISO 8601, partial dates allowed (YYYY or YYYY-MM)",
+      "properties": {
+        "start": { "type": "string" },
+        "end": { "type": "string" },
+        "circa": { "type": "boolean", "default": false }
+      }
+    },
+    "authors": {
+      "type": "array",
+      "items": { "type": "string", "description": "entity_id from the entity registry" }
+    },
+    "people_mentioned": {
+      "type": "array",
+      "items": { "type": "string", "description": "entity_id" }
+    },
+    "places_mentioned": {
+      "type": "array",
+      "items": { "type": "string", "description": "entity_id" }
+    },
+    "organizations_mentioned": {
+      "type": "array",
+      "items": { "type": "string", "description": "entity_id, e.g. Pines Inc., Skaneateles china company" }
+    },
+    "topics": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Free tags: construction, taxes, lake rights, china-company, holidays, ..."
+    },
+    "physical_location": {
+      "type": "object",
+      "required": ["box", "folder"],
+      "properties": {
+        "box": { "type": "string" },
+        "folder": { "type": "string" },
+        "notes": { "type": "string", "description": "e.g. 'stored rolled', 'inside back cover of D011'" }
+      }
+    },
+    "pages": { "type": "integer", "minimum": 1 },
+    "language": { "type": "string", "default": "en" },
+    "handwritten": { "type": "boolean" },
+    "condition": { "type": "string", "enum": ["good", "fair", "fragile", "damaged"] },
+    "transcription": {
+      "type": "object",
+      "properties": {
+        "status": { "type": "string", "enum": ["pending", "machine", "reviewed"] },
+        "method": { "type": "string", "description": "e.g. tesseract-5, claude-vision" },
+        "confidence": { "type": "string", "enum": ["high", "medium", "low"] },
+        "reviewed_by": { "type": "string" }
+      }
+    },
+    "provenance_notes": {
+      "type": "string",
+      "description": "Where this came from / who explained it, incl. pointers to interview voice memos"
+    }
+  }
+}
