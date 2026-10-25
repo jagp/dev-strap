@@ -1,5 +1,10 @@
 # dev-strap
 
+> **Retired (2026-10-24).** This plugin and its marketplace are no longer maintained.
+> omnilog lives on as its own plugin at [jagp/omnilog](https://github.com/jagp/omnilog),
+> installed from the [InterfaceLayer](https://github.com/jagp/interface-layer) marketplace
+> as `omnilog@interface-layer`. The ado task board was not carried over.
+
 **A Claude Code + VSCode project scaffold** — the best-practice setup worth having from commit #1, wired up and ready: git-flow, an automatic action log, linting, and tests.
 
 Today dev-strap is where those pieces are being built and hardened locally. The endgame is a **distributable Claude Code plugin** that stamps this setup into any new repo (see [Roadmap](#roadmap)).
